@@ -6,6 +6,7 @@ Main controller for Docket, a simple task management web app.
 Tyler Huntington, 2018
 """
 # imports
+import datetime
 from forms import AddTaskForm, RegisterForm, LoginForm
 from functools import wraps
 from flask import Flask, flash, redirect, url_for, session, \
@@ -119,6 +120,8 @@ def new_task():
             new_task = Task(form.name.data, 
                     form.due_date.data,
                     form.priority.data,
+                    datetime.datetime.utcnow(),
+                    '1',
                     '1'
             )
             db.session.add(new_task)
