@@ -12,6 +12,7 @@ from functools import wraps
 from flask import Flask, flash, redirect, url_for, session, \
         request, render_template, g
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 
 # configuration
 app = Flask(__name__)
@@ -66,6 +67,7 @@ def login():
             user = User.query.filter_by(name=request.form['name']).first()
             if user is not None and user.password == request.form['password']:
                 session['logged_in'] = True
+                session['user_id'] = user.id
                 flash('Welcome, {}!'.format(user.name))
                 return(redirect(url_for('tasks')))
             else:
@@ -78,6 +80,7 @@ def login():
 def logout():
 
     session.pop('logged_in', None)
+    session.pop('user_id', None)
     flash("Successfully logged out.")
     return redirect(url_for('login'))
 
@@ -86,19 +89,11 @@ def logout():
 @login_required
 def tasks():
 
-    # get open tasks from database
-    open_tasks = db.session.query(Task) \
-            .filter_by(status=1).order_by(Task.due_date.asc())
-    
-    # get closed tasks from database
-    closed_tasks = db.session.query(Task) \
-            .filter_by(status=0).order_by(Task.due_date.asc())
-
     return render_template(
             'tasks.html',
             form=AddTaskForm(request.form),
-            open_tasks=open_tasks,
-            closed_tasks=closed_tasks,
+            open_tasks=open_tasks(),
+            closed_tasks=closed_tasks(),
             )
 
 """
@@ -111,6 +106,7 @@ Docket.
 @app.route('/add/', methods = ['GET', 'POST'])
 @login_required
 def new_task():
+    error = None
     
     # fetch the form data submitted with request
     form = AddTaskForm(request.form)
@@ -122,12 +118,18 @@ def new_task():
                     form.priority.data,
                     datetime.datetime.utcnow(),
                     '1',
-                    '1'
+                    session['user_id']
             )
             db.session.add(new_task)
             db.session.commit()
             flash("New task successfully added to your Docket")
-    return(redirect(url_for('tasks')))
+
+    # handler for GET request and invalid form entries
+    return(render_template('tasks.html', 
+        form=form, 
+        error=error, 
+        open_tasks=open_tasks(),
+        closed_tasks=closed_tasks()))
 
     
 """
@@ -193,12 +195,16 @@ def register():
                     form.email.data,
                     form.password.data
             )
-            db.session.add(new_user)
-            db.session.commit()
-            flash('Thanks for registering, \
-                    please log in')
+            try:
+                db.session.add(new_user)
+                db.session.commit()
+                flash('Thanks for registering, \
+                        please log in')
 
-            return(redirect(url_for('login')))
+                return(redirect(url_for('login')))
+            except(IntegrityError):
+                error = "That username and/or email already exists."
+                return(render_template('register.html', form=form, error=error))
 
     # if form entry not valid, redirect to registration page
     return render_template('register.html', 
@@ -206,37 +212,30 @@ def register():
             error=error)
 
 
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Error handling for form validation exceptions
+def flash_errors(form):
+    for field, error in form.errors.items():
+        for error in errors:
+            flash("uError in the {0}, field - {1}".format(
+                getattr(form, field).label.text, error), 'error')
 
     
 
 
+"""
+open_tasks()
 
+Helper function for retrieving open tasks.
+"""
+def open_tasks():
+    return db.session.query(Task).filter_by(
+            status='1').order_by(Task.due_date.asc())
+
+"""
+closed_tasks()
+
+Helper function for retrieving closed tasks.
+"""
+def closed_tasks():
+    return db.session.query(Task).filter_by(
+            status='0').order_by(Task.due_date.asc())

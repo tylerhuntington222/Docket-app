@@ -46,7 +46,7 @@ class User(db.Model):
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
 
-    # relationship to taks table
+    # relationship to tasks table
     tasks = db.relationship('Task', backref='poster')
 
     def __init__(self, name, email, password):
