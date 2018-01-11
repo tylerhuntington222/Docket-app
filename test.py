@@ -46,7 +46,7 @@ class AllTests(unittest.TestCase):
 
     # helper method to perform logout
     def logout(self):
-        return self.app.get('logout'/, follow_redirects=True)
+        return self.app.get('logout/', follow_redirects=True)
 
     # test user creation
     def test_user_setup(self):
@@ -101,7 +101,12 @@ class AllTests(unittest.TestCase):
                 "michaelherman", "michaelherman")
         self.login(name="michael", password="michaelherman")
         response = self.logout()
-        self.assertIn(b"Goodbye", response.data)
+        self.assertIn(b"Successfully logged out", response.data)
+
+    # test that non-logged in users can't logout
+    def test_not_logged_in_users_cannot_logout(self):
+        response = self.logout()
+        self.assertNotIn(b"Successfully logged out", response.data)
         
 
 
