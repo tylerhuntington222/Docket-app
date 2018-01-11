@@ -16,7 +16,12 @@ Test suite for setup and takedown.
 '''
 class AllTests(unittest.TestCase):
 
-    # executed prior to each test
+    #-------------------------------------------------------------------------#
+    '''
+    HELPER METHODS FOR TESTS
+    '''
+    #-------------------------------------------------------------------------#
+        # executed prior to each test
     def setUp(self):
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
@@ -48,9 +53,31 @@ class AllTests(unittest.TestCase):
     def logout(self):
         return self.app.get('logout/', follow_redirects=True)
 
+    # helper method to create a user
+    def create_user(self, name, email, password):
+        new_user=User(name=name, email=email, password=password)
+        db.session.add(new_user)
+        db.session.commit()
+
+    # helper function to create a new task
+    def create_task(self):
+        return self.app.post('add/', 
+                data=dict(name="Go to the bank",
+                    due_date="1/23/2018",
+                    priority='4',
+                    status='1'),
+                follow_redirects=True)
+
+        
+    #-------------------------------------------------------------------------#
+    '''
+    TESTS
+    '''
+    #-------------------------------------------------------------------------#
     # test user creation
     def test_user_setup(self):
-        new_user = User("tylertarr", "tylertarr@huntington.com", "tylertarrhuntington")
+        new_user = User("tylertarr", "tylertarr@huntington.com", 
+                "tylertarrhuntington")
         db.session.add(new_user)
         db.session.commit()
         test = db.session.query(User).all()
@@ -60,7 +87,8 @@ class AllTests(unittest.TestCase):
     
     # test that unregistered users can't log in
     def test_invalid_form_data(self):
-        self.register("tylertarr", "tylertarr@huntington.com", "tylertarrhuntington", "tylertarrhuntington")
+        self.register("tylertarr", "tylertarr@huntington.com", 
+                "tylertarrhuntington", "tylertarrhuntington")
         response = self.login("wrongusername", "tylertarrhuntington")
         self.assertIn(b'Invalid username or password', response.data)
 
@@ -120,6 +148,70 @@ class AllTests(unittest.TestCase):
     def test_not_logged_in_users_cannot_access_tasks_page(self):
         response = self.app.get('tasks/', follow_redirects=True)
         self.assertIn(b"You need to log in first", response.data)
+
+    # test that users can add tasks
+    def test_users_can_add_tasks(self):
+        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
+        self.login("tylertarr", "tylerhuntington")
+        self.app.get('tasks/', follow_redirects=True)
+        response = self.create_task()
+        self.assertIn(b'New task successfully added to your Docket',
+                response.data)
+
+    # test that users cannot add tasks when there is an error
+    def test_users_cannot_add_tasks_when_error(self):
+        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
+        self.login("tylertarr", "tylerhuntington")
+        self.app.get('tasks/', follow_redirects=True)
+        response = self.app.post('add/', data=dict(
+            name="Go to the grocery store",
+            due_date=' ',
+            priority='4',
+            status='1'),
+            follow_redirects=True)
+        self.assertIn(b'This field is required', response.data)
+
+    # test that users can complete tasks
+    def test_users_can_complete_tasks(self):
+        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
+        self.login("tylertarr", "tylerhuntington")
+        self.app.get('tasks/', follow_redirects=True)
+        self.create_task()
+        response = self.app.get('complete/1/', follow_redirects=True)
+        self.assertIn(b'Task successfully marked as complete', response.data)
+
+    # test that users can delete tasks
+    def test_users_can_delete_tasks(self):
+        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
+        self.login("tylertarr", "tylerhuntington")
+        self.app.get('tasks/', follow_redirects=True)
+        self.create_task()
+        response = self.app.get('delete/1/', follow_redirects=True)
+        self.assertIn(b"Task successfully removed", response.data)
+
+    # test that users cannot complete tasks that they did not create
+    def test_users_cannot_complete_tasks_they_did_not_create(self):
+        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
+        self.login("tylertarr", "tylerhuntington")
+        self.app.get('tasks/', follow_redirects=True)
+        self.create_task()
+        self.logout()
+        self.create_user("tessajo", "tessa@jo.com", "tessasternberg")    
+        self.login("tylertarr", "tylerhuntington")
+        self.app.get('tasks/', follow_redirects=True)
+        response = self.app.get('complete/1/', follow_redirects=True)
+        self.assertNotIn(b'Task successfully marked as complete', 
+                response.data)
+
+        
+
+
+
+
+
+        
+
+        
 
 
         

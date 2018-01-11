@@ -146,7 +146,7 @@ Returns:
     redirects to user's task page
 
 """
-@app.route('/delete/<int:task_id>/')
+@app.route('/complete/<int:task_id>/')
 @login_required
 def complete(task_id):
 
@@ -159,7 +159,7 @@ def complete(task_id):
     return(redirect(url_for('tasks')))
 
 """
-delete_entry(task_id)
+delete(task_id)
 
 Function for removing a task from the user's Docket.
 
@@ -169,7 +169,7 @@ Args:
 Returns:
     redirects to user's task page
 """
-@app.route('/delete_entry/<int:task_id>/', \
+@app.route('/delete/<int:task_id>/', \
         methods = ['GET', 'POST'])
 @login_required
 def delete_entry(task_id):
