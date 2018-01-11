@@ -169,7 +169,7 @@ Args:
 Returns:
     redirects to user's task page
 """
-@app.route('/delete/<int:task_id>/', \
+@app.route('/delete_entry/<int:task_id>/', \
         methods = ['GET', 'POST'])
 @login_required
 def delete_entry(task_id):
