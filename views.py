@@ -198,8 +198,7 @@ def register():
             try:
                 db.session.add(new_user)
                 db.session.commit()
-                flash('Thanks for registering, \
-                        please log in')
+                flash('Thanks for registering, please log in.')
 
                 return(redirect(url_for('login')))
             except(IntegrityError):
