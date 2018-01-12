@@ -1,5 +1,6 @@
 '''
-Unit tests for Docker app.
+Unit tests for user-related functionality of Docket app. Tests pertain to 
+the `tasks` blueprint.
 '''
 
 import unittest
