@@ -116,12 +116,12 @@ def complete(task_id):
             .update({"status": "0"})
         db.session.commit()
         flash("Task successfully marked as complete!")
-        return(redirect(url_for('tasks')))
+        return(redirect(url_for('tasks.tasks')))
 
     # handle case that user tries to complete a task they did not create
     else:
         flash("You can only update tasks that you created.")
-        return(redirect(url_for('tasks')))
+        return(redirect(url_for('tasks.tasks')))
 
 
 """
@@ -149,9 +149,9 @@ def delete_entry(task_id):
             .delete()
         db.session.commit()
         flash("Task successfully removed from your Docket")
-        return(redirect(url_for('tasks')))
+        return(redirect(url_for('tasks.tasks')))
 
     else:
         flash("You can only delete tasks that you created")
-        return(redirect(url_for('tasks')))
+        return(redirect(url_for('tasks.tasks')))
         

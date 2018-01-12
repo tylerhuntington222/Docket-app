@@ -10,22 +10,22 @@
       <div class="datagrid">
         <table>
           <thead>
-            <tr>
+            <tr class="bordered">
               <th width="200px"><strong>Task Name</strong></th>
-              <th width="75px"><strong>Due Date</strong></th>
+              <th width="85px"><strong>Due Date</strong></th>
               <th width="100px"><strong>Posted Date</strong></th>
-              <th width="50px"><strong>Priority</strong></th>
-              <th width="90px"><strong>Posted By</strong></th>
+              <th width="70px"><strong>Priority</strong></th>
+              <th width="100px"><strong>Posted By</strong></th>
               <th><strong>Actions</strong></th>
             </tr>
           </thead>
           {% for task in open_tasks %}
-            <tr>
+            <tr class="bordered">
               <td width="200px">{{ task.name }}</td>
-              <td width="75px">{{ task.due_date }}</td>
+              <td width="85px">{{ task.due_date }}</td>
               <td width="100px">{{ task.posted_date }}</td>
-              <td width="50px">{{ task.priority }}</td>
-              <td width="90px">{{ task.poster.name }}</td>
+              <td width="70px">{{ task.priority }}</td>
+              <td width="100px">{{ task.poster.name }}</td>
               <td>
                 <a href="{{ url_for('tasks.delete_entry', task_id = task.task_id) }}">Delete</a>  -
                 <a href="{{ url_for('tasks.complete', task_id = task.task_id) }}">Mark as Complete</a>
@@ -41,22 +41,22 @@
       <div class="datagrid">
         <table>
           <thead>
-            <tr>
+            <tr class="bordered">
               <th width="200px"><strong>Task Name</strong></th>
-              <th width="75px"><strong>Due Date</strong></th>
+              <th width="85px"><strong>Due Date</strong></th>
               <th width="100px"><strong>Posted Date</strong></th>
-              <th width="50px"><strong>Priority</strong></th>
-              <th width="90px"><strong>Posted By</strong></th>
+              <th width="70px"><strong>Priority</strong></th>
+              <th width="100px"><strong>Posted By</strong></th>
               <th><strong>Actions</strong></th>
             </tr>
           </thead>
           {% for task in closed_tasks %}
-            <tr>
+            <tr class="bordered">
               <td width="200px">{{ task.name }}</td>
-              <td width="75px">{{ task.due_date }}</td>
+              <td width="85px">{{ task.due_date }}</td>
               <td width="100px">{{ task.posted_date }}</td>
-              <td width="50px">{{ task.priority }}</td>
-              <td width="90px">{{ task.poster.name }}</td>
+              <td width="70px">{{ task.priority }}</td>
+              <td width="100px">{{ task.poster.name }}</td>
               <td>
                  <a href="{{ url_for('tasks.delete_entry', task_id = task.task_id) }}">Delete</a>
               </td>
@@ -102,7 +102,7 @@
               </span>
             {% endif %}
           </div>
-          <div class="form-group"><input class="btn btn-default" type="submit" value="Add"></div>
+          <div class="form-group"><input class="btn btn-default" type="submit" value="Add to Docket"></div>
         </form>
     </div>
   </div>

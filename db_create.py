@@ -6,20 +6,30 @@ manager application.
 
 Tyler Huntington, 2017
 """
-from views import db
-from models import Task
+
+# imports
 from datetime import date
 
-# init the database schema
+from project import db
+from project.models import Task, User
+
+# create the database and the db table
 db.create_all()
 
-## insert sample data
-#db.session.add(Task("Make doctor's appointment", 
-#    date(2018, 1, 19), 8, 1))
-#db.session.add(Task("Book train ticket to New York",
-#    date(2018, 1, 15), 6, 1))
+# insert data
+db.session.add(
+        User("admin", "ad@min.com", "admin", "admin")
+)
+db.session.add(
+        Task("Walk the dogs", date(2018, 1, 28), 10, 
+            date(2018, 1, 12), 1, 1)
+)
+db.session.add(
+        Task("Go grocery shopping", date(2018, 1, 20), 10,
+            date(2018, 1, 12), 1, 1)
+)
 
-# commit the change
+# commit the changes
 db.session.commit()
 
         

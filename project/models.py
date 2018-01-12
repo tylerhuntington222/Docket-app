@@ -7,7 +7,7 @@ SQL-Alchemy ORM
 Tyler Huntington, 2007
 """
 
-from views import db
+from project import db
 import datetime
 
 class Task(db.Model):

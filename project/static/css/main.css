@@ -3,6 +3,14 @@ body {
   background: #ffffff;
 }
 
+tr.bordered {
+	border-bottom: 1px solid #DCDCDC;
+}
+
+th, td {
+    padding: 10px 5px 10px 0;
+}
+
 .footer {
   padding-top: 30px;
  }
@@ -15,7 +23,6 @@ body {
 .input-group {
   margin: 15px 0;
 }
-
 
 
 

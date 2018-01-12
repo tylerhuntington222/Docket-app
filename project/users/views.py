@@ -1,16 +1,8 @@
 """
 views.py
 
-Main controller for Docket, a simple task management web app.
-
-Tyler Huntington, 2018
-"""
-# imports
-import datetime
-from """
-views.py
-
-Main controller for Docket, a simple task management web app.
+Controller for users blueprint of Docket app. Manages 
+control flow for all user-related functionality of the app.
 
 Tyler Huntington, 2018
 """
@@ -56,7 +48,7 @@ def login_required(test):
 
         else:
             flash("You need to log in first")
-            return(redirect(url_for('login')))
+            return(redirect(url_for('users.login')))
 
     return wrap
 
@@ -78,7 +70,7 @@ def login():
                 session['user_id'] = user.id
                 session['role'] = user.role
                 flash('Welcome, {}!'.format(user.name))
-                return(redirect(url_for('tasks')))
+                return(redirect(url_for('tasks.tasks')))
             else:
                 error = "Invalid username or password."
     return(render_template("login.html", form=form, error=error))
@@ -91,7 +83,7 @@ def logout():
     session.pop('user_id', None)
     session.pop('role', None)
     flash("Successfully logged out.")
-    return redirect(url_for('login'))
+    return redirect(url_for('users.login'))
 
 
 @users_blueprint.route('/register/', methods=['GET', 'POST'])
@@ -113,7 +105,7 @@ def register():
                 db.session.commit()
                 flash('Thanks for registering, please log in.')
 
-                return(redirect(url_for('login')))
+                return(redirect(url_for('users.login')))
             except(IntegrityError):
                 error = "That username and/or email already exists."
                 return(render_template('register.html', form=form, error=error))
