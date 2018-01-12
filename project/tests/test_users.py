@@ -2,13 +2,12 @@
 Unit tests for user-related functionality of Docket app. Tests pertain to 
 the `tasks` blueprint.
 '''
-
 import unittest
 import os
 
-from views import app, db
-from _config import basedir
-from models import User
+from project import app, db
+from project._config import basedir
+from project.models import User, Task
 
 TEST_DB = 'test.db'
 
@@ -196,6 +195,15 @@ class UsersTests(unittest.TestCase):
         response = self.app.get('delete/1/', follow_redirects=True)
         self.assertIn(b'Task successfully removed from your Docket', 
             response.data)
+
+    def test_task_template_displays_logged_in_user_name(self):
+        self.register('william', 'william@shakespeare.com',
+            'william', 'william')
+        self.login('william', 'william')
+        response = self.app.get('tasks/', follow_redirects=True)
+        self.assertIn(b"william", response.data)
+
+
 
 
 
