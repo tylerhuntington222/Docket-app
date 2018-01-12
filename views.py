@@ -72,8 +72,6 @@ def login():
                 return(redirect(url_for('tasks')))
             else:
                 error = "Invalid username or password."
-        else:
-            error = "Both fields are required"
     return(render_template("login.html", form=form, error=error))
 
 @app.route('/logout/')
@@ -169,7 +167,7 @@ Args:
 Returns:
     redirects to user's task page
 """
-@app.route('/delete_entry/<int:task_id>/', \
+@app.route('/delete/<int:task_id>/', \
         methods = ['GET', 'POST'])
 @login_required
 def delete_entry(task_id):
