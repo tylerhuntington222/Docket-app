@@ -68,6 +68,7 @@ def login():
             if user is not None and user.password == request.form['password']:
                 session['logged_in'] = True
                 session['user_id'] = user.id
+                session['role'] = user.role
                 flash('Welcome, {}!'.format(user.name))
                 return(redirect(url_for('tasks')))
             else:
@@ -80,6 +81,7 @@ def logout():
 
     session.pop('logged_in', None)
     session.pop('user_id', None)
+    session.pop('role', None)
     flash("Successfully logged out.")
     return redirect(url_for('login'))
 
@@ -147,14 +149,23 @@ Returns:
 @app.route('/complete/<int:task_id>/')
 @login_required
 def complete(task_id):
+    new_id = task_id
+    task = db.session.query(Task).filter_by(task_id=new_id)
 
-    # find the selected task and update status to 'complete'
-    db.session.query(Task).filter_by(task_id=task_id) \
+    # verify that user created the task they are attempting to mark complete
+    if (session['user_id'] == task.first().user_id or 
+            session['role'] == 'admin'):
+        db.session.query(Task).filter_by(task_id=new_id) \
             .update({"status": "0"})
-    db.session.commit()
+        db.session.commit()
+        flash("Task successfully marked as complete!")
+        return(redirect(url_for('tasks')))
 
-    flash("Task successfully marked as complete!")
-    return(redirect(url_for('tasks')))
+    # handle case that user tries to complete a task they did not create
+    else:
+        flash("You can only update tasks that you created.")
+        return(redirect(url_for('tasks')))
+
 
 """
 delete(task_id)
@@ -171,14 +182,22 @@ Returns:
         methods = ['GET', 'POST'])
 @login_required
 def delete_entry(task_id):
+    new_id = task_id
+    task = db.session.query(Task).filter_by(task_id=new_id)
+    if (session["user_id"] == task.first().user_id or
+            session['role'] == 'admin'):
 
-    # find task to delete and remove it from table
-    db.session.query(Task).filter_by(task_id=task_id) \
+        # find task to delete and remove it from table
+        db.session.query(Task).filter_by(task_id=task_id) \
             .delete()
-    db.session.commit()
-    
-    flash("Task successfully removed from your Docket.")
-    return(redirect(url_for('tasks')))
+        db.session.commit()
+        flash("Task successfully removed from your Docket")
+        return(redirect(url_for('tasks')))
+
+    else:
+        flash("You can only delete tasks that you created")
+        return(redirect(url_for('tasks')))
+        
 
 @app.route('/register/', methods=['GET', 'POST'])
 def register():

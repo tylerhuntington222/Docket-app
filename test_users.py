@@ -14,7 +14,7 @@ TEST_DB = 'test.db'
 '''
 Test suite for setup and takedown.
 '''
-class AllTests(unittest.TestCase):
+class UsersTests(unittest.TestCase):
 
     #-------------------------------------------------------------------------#
     '''
@@ -59,6 +59,12 @@ class AllTests(unittest.TestCase):
         db.session.add(new_user)
         db.session.commit()
 
+    def create_admin(self, name, email, password):
+        new_admin = User(name=name, email=email, password=password,
+            role = "admin")
+        db.session.add(new_admin)
+        db.session.commit()
+
     # helper function to create a new task
     def create_task(self):
         return self.app.post('add/', 
@@ -74,8 +80,8 @@ class AllTests(unittest.TestCase):
     TESTS
     '''
     #-------------------------------------------------------------------------#
-    # test user creation
-    def test_user_setup(self):
+    # test user registration
+    def test_users_can_register(self):
         new_user = User("tylertarr", "tylertarr@huntington.com", 
                 "tylertarrhuntington")
         db.session.add(new_user)
@@ -84,22 +90,18 @@ class AllTests(unittest.TestCase):
         for t in test:
             t.name
         assert(t.name == 'tylertarr')
-    
-    # test that unregistered users can't log in
-    def test_invalid_form_data(self):
-        self.register("tylertarr", "tylertarr@huntington.com", 
-                "tylertarrhuntington", "tylertarrhuntington")
-        response = self.login("wrongusername", "tylertarrhuntington")
-        self.assertIn(b'Invalid username or password', response.data)
 
-    # test that form is present on registration page
-    def test_form_is_present_on_register_page(self):
-        response = self.app.get('register/')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Please register to access the task list", response.data)
+    def test_form_is_present_on_login_page(self):
+        response = self.app.get('/', follow_redirects=True)
+        self.assertIn(b"Please sign in to access your task list",
+        response.data) 
+
+    def test_users_cannot_login_unless_registered(self):
+        response = self.login('foo', 'bar')
+        self.assertIn(b"Invalid username or password", response.data)
 
     # test that users can register
-    def test_users_can_register_and_login(self):
+    def test_users_can_login(self):
 
         # first check that registration works
         self.app.get("register/", follow_redirects=True)
@@ -112,6 +114,20 @@ class AllTests(unittest.TestCase):
         # now check that login works
         response = self.login("tylertarr", "tylertarrhuntington")
         self.assertIn(b"Welcome", response.data)
+
+
+    # test that unregistered users can't log in
+    def test_invalid_form_data(self):
+        self.register("tylertarr", "tylertarr@huntington.com", 
+                "tylertarrhuntington", "tylertarrhuntington")
+        response = self.login("wrongusername", "tylertarrhuntington")
+        self.assertIn(b'Invalid username or password', response.data)
+
+    # test that form is present on registration page
+    def test_form_is_present_on_register_page(self):
+        response = self.app.get('register/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Please register to access the task list", response.data)
 
     # test that user registration error thrown when duplicate username used
     def test_user_registration_error(self):
@@ -136,89 +152,69 @@ class AllTests(unittest.TestCase):
         response = self.logout()
         self.assertNotIn(b"Successfully logged out", response.data)
 
-    # test that logged in users can view tasks
-    def test_logged_in_users_can_view_tasks(self):
-        self.register("tylertarr", "tyler@tarr.com",
-                "tylerhuntington", "tylerhuntington")
-        response = self.login("tylertarr", "tylerhuntington")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Add a new task:", response.data)
-
-    # test that not logged in users cannot access tasks page
-    def test_not_logged_in_users_cannot_access_tasks_page(self):
-        response = self.app.get('tasks/', follow_redirects=True)
-        self.assertIn(b"You need to log in first", response.data)
-
-    # test that users can add tasks
-    def test_users_can_add_tasks(self):
-        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
-        self.login("tylertarr", "tylerhuntington")
-        self.app.get('tasks/', follow_redirects=True)
-        response = self.create_task()
-        self.assertIn(b'New task successfully added to your Docket',
-                response.data)
-
-    # test that users cannot add tasks when there is an error
-    def test_users_cannot_add_tasks_when_error(self):
-        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
-        self.login("tylertarr", "tylerhuntington")
-        self.app.get('tasks/', follow_redirects=True)
-        response = self.app.post('add/', data=dict(
-            name="Go to the grocery store",
-            due_date=' ',
-            priority='4',
-            status='1'),
+    def test_user_login_field_errors(self):
+        response = self.app.post('/',
+            data = dict(name='', password='tylerhuntington'),
             follow_redirects=True)
-        self.assertIn(b'This field is required', response.data)
+        self.assertIn(b"This field is required", response.data)
 
-    # test that users can complete tasks
-    def test_users_can_complete_tasks(self):
-        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
-        self.login("tylertarr", "tylerhuntington")
-        self.app.get('tasks/', follow_redirects=True)
-        self.create_task()
-        response = self.app.get('complete/1/', follow_redirects=True)
-        self.assertIn(b'Task successfully marked as complete', response.data)
+    def test_user_default_role(self):
+        db.session.add(
+            User(
+                "johnny",
+                "johnny@appleseed.com",
+                "appleseed"
+            )
+        )
+        db.session.commit()
+        users = db.session.query(User).all()
+        for u in users:
+            self.assertEquals(u.role, 'user')
 
-    # test that users can delete tasks
-    def test_users_can_delete_tasks(self):
-        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
-        self.login("tylertarr", "tylerhuntington")
-        self.app.get('tasks/', follow_redirects=True)
-        self.create_task()
-        response = self.app.get('delete/1/', follow_redirects=True)
-        self.assertIn(b"Task successfully removed", response.data)
-
-    # test that users cannot complete tasks that they did not create
-    def test_users_cannot_complete_tasks_they_did_not_create(self):
-        self.create_user("tylertarr", "tyler@tarr.com", "tylerhuntington")    
-        self.login("tylertarr", "tylerhuntington")
+    def test_admin_users_can_complete_tasks_they_did_not_create(self):
+        self.create_user("averagejoe", "average@joe.com", "averagejoe")
+        self.login("averagejoe", "averagejoe")
         self.app.get('tasks/', follow_redirects=True)
         self.create_task()
         self.logout()
-        self.create_user("tessajo", "tessa@jo.com", "tessasternberg")    
-        self.login("tylertarr", "tylerhuntington")
+        self.create_admin("superman", "super@man.com", "superman")
+        self.login("superman", "superman")
         self.app.get('tasks/', follow_redirects=True)
         response = self.app.get('complete/1/', follow_redirects=True)
-        self.assertNotIn(b'Task successfully marked as complete', 
-                response.data)
+        self.assertIn(b'Task successfully marked as complete', response.data)
 
-        
-
-
-
-
-
-        
-
-        
-
-
-        
-
+    def test_admin_users_can_delete_tasks_they_did_not_create(self):
+        self.create_user("averagejoe", "average@joe.com", "averagejoe")
+        self.login("averagejoe", "averagejoe")
+        self.app.get('tasks/', follow_redirects=True)
+        self.create_task()
+        self.logout()
+        self.create_admin("superman", "super@man.com", "superman")
+        self.login("superman", "superman")
+        self.app.get('tasks/', follow_redirects=True)
+        response = self.app.get('delete/1/', follow_redirects=True)
+        self.assertIn(b'Task successfully removed from your Docket', 
+            response.data)
 
 
 
 
-if (__name__ == '__main__'): 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
     unittest.main()

@@ -45,15 +45,16 @@ class User(db.Model):
     name = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
-
-    # relationship to tasks table
     tasks = db.relationship('Task', backref='poster')
+    role = db.Column(db.String, default='user')
 
-    def __init__(self, name, email, password):
+    def __init__(self, name=None, email=None, 
+            password=None, role=None):
 
         self.name = name
         self.email = email
         self.password = password
+        self.role = role
 
     def __repr__(self):
 
