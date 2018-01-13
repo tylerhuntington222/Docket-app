@@ -60,6 +60,12 @@ class TasksTests(unittest.TestCase):
         db.session.add(new_user)
         db.session.commit()
 
+    def create_admin(self, name, email, password):
+        new_admin = User(name=name, email=email, password=password,
+            role = "admin")
+        db.session.add(new_admin)
+        db.session.commit()
+
     # helper function to create a new task
     def create_task(self):
         return self.app.post('add/', 
@@ -157,6 +163,55 @@ class TasksTests(unittest.TestCase):
         response = self.app.get('delete/1/', follow_redirects=True)
         self.assertNotIn(b'Task successfully removed', 
                 response.data)
+
+    def test_users_cannot_see_modify_links_for_tasks_not_created_by_them(self):
+        self.register("william",
+                "william@shakespeare.com",
+                "shakespeare",
+                "shakespeare")
+        self.login("william", "shakespeare")
+        self.app.get('tasks/', follow_redirects=True)
+        self.create_task()
+        self.logout()
+        self.register("tylertarr", "tyler@tarr.com", 
+                "huntington", "huntington")
+        response = self.login("tylertarr", "huntington")
+        self.assertNotIn(b"Delete", response.data)
+        self.assertNotIn(b"Mark as complete", response.data)
+
+    def test_users_can_see_task_modify_links_for_tasks_they_created(self):
+        self.register('william', 'william@shakespeare.com',
+                'shakespeare', 'shakespeare')
+        self.login('william', 'shakespeare')
+        self.create_task()
+        self.logout()
+        self.register('tylertarr', 'tyler@tarr.com', 
+                'huntington', 'huntington')
+        self.login('tylertarr', 'huntington')
+        self.create_task()
+        response = self.app.get('tasks/', follow_redirects=True)
+        self.assertIn(b'delete/2/', response.data)
+        self.assertIn(b'complete/2/', response.data)
+
+    def test_admin_users_can_see_modify_links_for_all_tasks(self):
+        self.register('tylertarr', 'tyler@tarr.com', 
+                'huntington', 'huntington')
+        self.login('tylertarr', 'huntington')
+        self.create_task()
+        self.logout()
+        self.create_admin('superman', 'super@man.com', 
+                'allpowerful')
+        self.login('superman', 'allpowerful')
+        response = self.create_task()
+        self.assertIn(b'complete/1/', response.data)
+        self.assertIn(b'delete/1/', response.data)
+        self.assertIn(b'complete/2/', response.data)
+        self.assertIn(b'delete/2/', response.data)
+    
+        
+
+
+        
 
 
         

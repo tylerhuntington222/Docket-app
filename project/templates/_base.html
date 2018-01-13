@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Welcome to Docket!!!</title>
+    <title>Welcome to Docket</title>
     <!-- styles -->
     <link href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.4/yeti/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
@@ -22,19 +22,22 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">Docket</a>
+          {% if session.logged_in %}
+            <a class="navbar-brand" href="/tasks">Docket</a>
+          {% else %}
+            <a class="navbar-brand" href="/">Docket</a>
+          {% endif %}
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             {% if not session.logged_in %}
               <li><a href="/register">Sign Up</a></li>
-            {% else %}
-              <li><a href="/logout">Log Out</a></li>
             {% endif %}
           </ul>
           {% if session.logged_in %}
           <ul class="nav navbar-nav navbar-right">
             <li><a>{{username}}</a></li>
+            <li><a href="/logout">Log Out</a></li>
           </ul>
           {% endif %}
         </div><!--/.nav-collapse -->

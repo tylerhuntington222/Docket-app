@@ -59,6 +59,9 @@ def login():
     
     # init error message var
     error = None
+
+    # init logged_in variable for this session
+    session["logged_in"] = None
     
     form = LoginForm(request.form)
 
@@ -74,6 +77,11 @@ def login():
                 return(redirect(url_for('tasks.tasks')))
             else:
                 error = "Invalid username or password."
+
+    # log out user if previously logged in
+    if session['logged_in']:
+        session.pop('logged_in', None)
+   
     return(render_template("login.html", form=form, error=error))
 
 @users_blueprint.route('/logout/')
