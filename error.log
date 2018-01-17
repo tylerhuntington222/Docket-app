@@ -1,0 +1,7 @@
+
+404 error at 16-01-2018 22:08:32: http://localhost:5000/does_not_exist 
+500 error at 16-01-2018 22:10:48: http://localhost:5000/register/ 
+500 error at 16-01-2018 22:11:01: http://localhost:5000/register/ 
+500 error at 16-01-2018 22:11:17: http://localhost:5000/register/ 
+500 error at 16-01-2018 22:11:47: http://localhost:5000/register/ 
+500 error at 16-01-2018 22:12:35: http://localhost:5000/register/ 
